@@ -22,7 +22,7 @@ const CHART_COLORS = {
   pink:   "#ff1a6b",
 };
 
-const PIE_COLORS = ["#00f5ff", "#8040ff", "#00eb7e", "#ffc800", "#ff1a6b"];
+const PIE_COLORS = ["#00f5ff", "#8040ff", "#00eb7e", "#ffc800", "#ff1a6b", "#ff6b35", "#5ce0d8", "#c084fc"];
 
 const ACTIVITY_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
   note:          { icon: MessageSquare, color: "#00f5ff",  bg: "rgba(0,245,255,0.08)" },
@@ -104,6 +104,7 @@ export default function Dashboard() {
   const { data: activities }                               = useGetDashboardRecentActivities();
   const { data: campaigns }                                = useGetCampaigns({ status: "scheduled" });
 
+  const sortedLeadSources = leadSources ? [...leadSources].sort((a, b) => b.count - a.count) : [];
   const isLoading = statsLoading || funnelLoading;
 
   if (isLoading) {
@@ -202,21 +203,26 @@ export default function Dashboard() {
           <div className="cyber-card robo-card p-5">
             <SectionHeading icon={Target} label="Lead Sources" accent="purple" />
             <div className="h-[160px]">
-              {leadSources && (
+              {sortedLeadSources.length > 0 && (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={leadSources} cx="50%" cy="50%" innerRadius={44} outerRadius={62} paddingAngle={3} dataKey="count" nameKey="source">
-                      {leadSources.map((_, i) => (
+                    <Pie data={sortedLeadSources} cx="50%" cy="50%" innerRadius={44} outerRadius={62} paddingAngle={3} dataKey="count" nameKey="source">
+                      {sortedLeadSources.map((_, i) => (
                         <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} style={{ filter: `drop-shadow(0 0 4px ${PIE_COLORS[i % PIE_COLORS.length]}70)` }} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: "#0a0a1e", border: "1px solid rgba(0,245,255,0.18)", fontFamily: "JetBrains Mono", fontSize: 11, borderRadius: 6 }} />
+                    <Tooltip
+                      contentStyle={{ background: "#0a0a1e", border: "1px solid rgba(0,245,255,0.18)", fontFamily: "JetBrains Mono", fontSize: 11, borderRadius: 6, color: "#e0e0e0" }}
+                      itemStyle={{ color: "#e0e0e0" }}
+                      labelStyle={{ color: "#00f5ff" }}
+                      wrapperStyle={{ zIndex: 50 }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               )}
             </div>
             <div className="space-y-1.5 mt-1">
-              {(leadSources ?? []).slice(0, 4).map((s, i) => (
+              {sortedLeadSources.map((s, i) => (
                 <div key={s.source} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-sm flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length], boxShadow: `0 0 4px ${PIE_COLORS[i % PIE_COLORS.length]}` }} />

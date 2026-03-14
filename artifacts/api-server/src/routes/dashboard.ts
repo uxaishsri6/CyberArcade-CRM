@@ -76,13 +76,17 @@ router.get("/funnel", async (_req, res) => {
 router.get("/campaign-performance", async (_req, res) => {
   try {
     const campaigns = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.createdAt)).limit(6);
-    res.json(campaigns.map(c => ({
-      name: c.name.length > 20 ? c.name.substring(0, 20) + "..." : c.name,
-      sent: c.sentCount,
-      opened: c.openCount,
-      clicked: c.clickCount,
-      converted: c.conversionCount,
-    })));
+    res.json(campaigns.map(c => {
+      const label = c.name.length > 20 ? c.name.substring(0, 20) + "..." : c.name;
+      return {
+        name: c.status === "draft" ? `${label} (Draft)` : label,
+        sent: c.sentCount,
+        opened: c.openCount,
+        clicked: c.clickCount,
+        converted: c.conversionCount,
+        status: c.status,
+      };
+    }));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
