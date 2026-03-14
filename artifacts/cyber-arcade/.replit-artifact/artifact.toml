@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "CyberArcade CRM"
+version = "1.0.0"
+id = "artifacts/cyber-arcade"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 24486
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/cyber-arcade run dev"
+
+[services.env]
+PORT = "24486"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/cyber-arcade", "run", "build"]
+publicDir = "artifacts/cyber-arcade/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

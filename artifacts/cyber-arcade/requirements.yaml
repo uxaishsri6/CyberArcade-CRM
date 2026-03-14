@@ -1,0 +1,17 @@
+packages:
+  "framer-motion": "Page transitions and animated UI elements for the cyberpunk feel"
+  "recharts": "Required for dashboard and analytics charts"
+  "date-fns": "Date formatting for timelines and tables"
+  "@hookform/resolvers": "Required for form validation if react-hook-form is used"
+  "react-hook-form": "Form state management"
+  "zod": "Schema validation"
+  "lucide-react": "Icons"
+  "clsx": "Class utility"
+  "tailwind-merge": "Class utility"
+
+images: []
+
+notes:
+  - Using generated hooks from @workspace/api-client-react
+  - Applying custom CSS variables for the CyberArcade theme
+  - Wouter used for routing

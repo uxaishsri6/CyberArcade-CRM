@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CyberArcade CRM API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: contacts
+    description: Contact management
+  - name: segments
+    description: Segment management
+  - name: campaigns
+    description: Campaign management
+  - name: activities
+    description: Activity log
+  - name: analytics
+    description: Analytics and dashboard
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +32,711 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /contacts:
+    get:
+      operationId: getContacts
+      tags: [contacts]
+      summary: List contacts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: source
+          in: query
+          schema:
+            type: string
+        - name: trialAttended
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: minLeadScore
+          in: query
+          schema:
+            type: string
+        - name: maxLeadScore
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: tags
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactListResponse"
+    post:
+      operationId: createContact
+      tags: [contacts]
+      summary: Create a contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContactInput"
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+
+  /contacts/export:
+    get:
+      operationId: exportContacts
+      tags: [contacts]
+      summary: Export contacts as CSV
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /contacts/bulk:
+    patch:
+      operationId: bulkUpdateContacts
+      tags: [contacts]
+      summary: Bulk update contacts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUpdateContactsInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUpdateResult"
+
+  /contacts/{id}:
+    get:
+      operationId: getContact
+      tags: [contacts]
+      summary: Get a contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateContact
+      tags: [contacts]
+      summary: Update a contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContactInput"
+      responses:
+        "200":
+          description: Updated contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+    delete:
+      operationId: deleteContact
+      tags: [contacts]
+      summary: Delete a contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /contacts/{id}/activities:
+    get:
+      operationId: getContactActivities
+      tags: [contacts]
+      summary: Get contact activities
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Activity"
+    post:
+      operationId: createContactActivity
+      tags: [contacts]
+      summary: Log a contact activity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateActivityInput"
+      responses:
+        "201":
+          description: Created activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+
+  /contacts/{id}/campaigns:
+    get:
+      operationId: getContactCampaigns
+      tags: [contacts]
+      summary: Get campaigns a contact is part of
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Campaign logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampaignLog"
+
+  /segments:
+    get:
+      operationId: getSegments
+      tags: [segments]
+      summary: List segments
+      responses:
+        "200":
+          description: Segments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Segment"
+    post:
+      operationId: createSegment
+      tags: [segments]
+      summary: Create a segment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSegmentInput"
+      responses:
+        "201":
+          description: Created segment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Segment"
+
+  /segments/{id}:
+    get:
+      operationId: getSegment
+      tags: [segments]
+      summary: Get a segment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Segment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Segment"
+    patch:
+      operationId: updateSegment
+      tags: [segments]
+      summary: Update a segment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSegmentInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Segment"
+    delete:
+      operationId: deleteSegment
+      tags: [segments]
+      summary: Delete a segment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /segments/{id}/preview:
+    post:
+      operationId: previewSegment
+      tags: [segments]
+      summary: Preview segment contact count
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SegmentFilters"
+      responses:
+        "200":
+          description: Count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegmentPreviewResult"
+
+  /segments/preview:
+    post:
+      operationId: previewNewSegment
+      tags: [segments]
+      summary: Preview a new segment contact count
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SegmentFilters"
+      responses:
+        "200":
+          description: Count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegmentPreviewResult"
+
+  /campaigns:
+    get:
+      operationId: getCampaigns
+      tags: [campaigns]
+      summary: List campaigns
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignInput"
+      responses:
+        "201":
+          description: Created campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}:
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      summary: Get a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    patch:
+      operationId: updateCampaign
+      tags: [campaigns]
+      summary: Update a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCampaignInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    delete:
+      operationId: deleteCampaign
+      tags: [campaigns]
+      summary: Delete a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /campaigns/{id}/launch:
+    post:
+      operationId: launchCampaign
+      tags: [campaigns]
+      summary: Launch a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Launched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}/pause:
+    post:
+      operationId: pauseCampaign
+      tags: [campaigns]
+      summary: Pause a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}/duplicate:
+    post:
+      operationId: duplicateCampaign
+      tags: [campaigns]
+      summary: Duplicate a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Duplicated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}/logs:
+    get:
+      operationId: getCampaignLogs
+      tags: [campaigns]
+      summary: Get campaign logs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampaignLog"
+
+  /campaigns/{id}/timeline:
+    get:
+      operationId: getCampaignTimeline
+      tags: [campaigns]
+      summary: Get campaign engagement timeline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Timeline data points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimelinePoint"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [analytics]
+      summary: Get dashboard KPI stats
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/funnel:
+    get:
+      operationId: getDashboardFunnel
+      tags: [analytics]
+      summary: Get conversion funnel data
+      responses:
+        "200":
+          description: Funnel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FunnelStage"
+
+  /dashboard/campaign-performance:
+    get:
+      operationId: getDashboardCampaignPerformance
+      tags: [analytics]
+      summary: Get campaign performance (last 6)
+      responses:
+        "200":
+          description: Campaign bars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampaignPerformanceBar"
+
+  /dashboard/lead-sources:
+    get:
+      operationId: getDashboardLeadSources
+      tags: [analytics]
+      summary: Get lead source breakdown
+      responses:
+        "200":
+          description: Source breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeadSourceItem"
+
+  /dashboard/recent-activities:
+    get:
+      operationId: getDashboardRecentActivities
+      tags: [analytics]
+      summary: Get recent activities feed
+      responses:
+        "200":
+          description: Activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Activity"
+
+  /conversions/funnel:
+    get:
+      operationId: getConversionFunnel
+      tags: [analytics]
+      summary: Get full conversion funnel (8 stages)
+      responses:
+        "200":
+          description: Funnel stages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversionFunnelStage"
+
+  /conversions/cohorts:
+    get:
+      operationId: getConversionCohorts
+      tags: [analytics]
+      summary: Get cohort table data
+      responses:
+        "200":
+          description: Cohorts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CohortRow"
+
+  /conversions/by-source:
+    get:
+      operationId: getConversionBySource
+      tags: [analytics]
+      summary: Get conversion rate by source
+      responses:
+        "200":
+          description: By source
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversionBySource"
+
+  /search:
+    get:
+      operationId: globalSearch
+      tags: [analytics]
+      summary: Global search across contacts, campaigns, segments
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GlobalSearchResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +747,694 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    BulkUpdateResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+      required:
+        - updated
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        source:
+          type: string
+          enum: [trial_attendee, website, instagram, facebook, referral, walk_in, sms, manual]
+        status:
+          type: string
+          enum: [cold_lead, warm_lead, trial_attended, interested, enrolled, churned]
+        childName:
+          type: ["string", "null"]
+        childAge:
+          type: ["integer", "null"]
+        childGrade:
+          type: ["string", "null"]
+        trialDate:
+          type: ["string", "null"]
+        trialAttended:
+          type: boolean
+        trialBatch:
+          type: ["string", "null"]
+        enrolledDate:
+          type: ["string", "null"]
+        enrolledCourse:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        leadScore:
+          type: integer
+        lastContactedAt:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        assignedTo:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - source
+        - status
+        - trialAttended
+        - tags
+        - leadScore
+        - createdAt
+        - updatedAt
+
+    ContactListResponse:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - contacts
+        - total
+        - page
+        - totalPages
+
+    CreateContactInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        source:
+          type: string
+          enum: [trial_attendee, website, instagram, facebook, referral, walk_in, sms, manual]
+        status:
+          type: string
+          enum: [cold_lead, warm_lead, trial_attended, interested, enrolled, churned]
+        childName:
+          type: ["string", "null"]
+        childAge:
+          type: ["integer", "null"]
+        childGrade:
+          type: ["string", "null"]
+        trialDate:
+          type: ["string", "null"]
+        trialAttended:
+          type: boolean
+        trialBatch:
+          type: ["string", "null"]
+        enrolledDate:
+          type: ["string", "null"]
+        enrolledCourse:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        leadScore:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        assignedTo:
+          type: ["string", "null"]
+      required:
+        - firstName
+        - lastName
+        - email
+        - source
+        - status
+
+    UpdateContactInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        source:
+          type: string
+          enum: [trial_attendee, website, instagram, facebook, referral, walk_in, sms, manual]
+        status:
+          type: string
+          enum: [cold_lead, warm_lead, trial_attended, interested, enrolled, churned]
+        childName:
+          type: ["string", "null"]
+        childAge:
+          type: ["integer", "null"]
+        childGrade:
+          type: ["string", "null"]
+        trialDate:
+          type: ["string", "null"]
+        trialAttended:
+          type: boolean
+        trialBatch:
+          type: ["string", "null"]
+        enrolledDate:
+          type: ["string", "null"]
+        enrolledCourse:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        leadScore:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        assignedTo:
+          type: ["string", "null"]
+        lastContactedAt:
+          type: ["string", "null"]
+
+    BulkUpdateContactsInput:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+        status:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        campaignId:
+          type: ["string", "null"]
+      required:
+        - ids
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+        contactId:
+          type: string
+        type:
+          type: string
+          enum: [note, call, email_sent, whatsapp_sent, status_change, enrolled]
+        description:
+          type: string
+        createdAt:
+          type: string
+        createdBy:
+          type: ["string", "null"]
+        contactName:
+          type: ["string", "null"]
+      required:
+        - id
+        - contactId
+        - type
+        - description
+        - createdAt
+
+    CreateActivityInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [note, call, email_sent, whatsapp_sent, status_change, enrolled]
+        description:
+          type: string
+        createdBy:
+          type: ["string", "null"]
+      required:
+        - type
+        - description
+
+    Segment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        filters:
+          type: object
+        contactCount:
+          type: integer
+        color:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - filters
+        - contactCount
+        - color
+        - createdAt
+
+    SegmentFilters:
+      type: object
+      properties:
+        match:
+          type: string
+          enum: [all, any]
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SegmentCondition"
+      required:
+        - match
+        - conditions
+
+    SegmentCondition:
+      type: object
+      properties:
+        field:
+          type: string
+        operator:
+          type: string
+        value:
+          type: ["string", "null"]
+      required:
+        - field
+        - operator
+
+    SegmentPreviewResult:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+        - count
+
+    CreateSegmentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        filters:
+          type: object
+        color:
+          type: string
+      required:
+        - name
+        - filters
+        - color
+
+    UpdateSegmentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        filters:
+          type: object
+        color:
+          type: string
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        goal:
+          type: string
+          enum: [enroll_trial, new_acquisition, re_engage, batch_announce, awareness]
+        status:
+          type: string
+          enum: [draft, scheduled, active, paused, completed]
+        channels:
+          type: array
+          items:
+            type: string
+        segmentId:
+          type: ["string", "null"]
+        segmentName:
+          type: ["string", "null"]
+        scheduledAt:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        messageBody:
+          type: ["string", "null"]
+        ctaText:
+          type: ["string", "null"]
+        ctaUrl:
+          type: ["string", "null"]
+        sentCount:
+          type: integer
+        openCount:
+          type: integer
+        clickCount:
+          type: integer
+        replyCount:
+          type: integer
+        conversionCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - goal
+        - status
+        - channels
+        - sentCount
+        - openCount
+        - clickCount
+        - replyCount
+        - conversionCount
+        - createdAt
+
+    CreateCampaignInput:
+      type: object
+      properties:
+        name:
+          type: string
+        goal:
+          type: string
+          enum: [enroll_trial, new_acquisition, re_engage, batch_announce, awareness]
+        status:
+          type: string
+          enum: [draft, scheduled, active, paused, completed]
+        channels:
+          type: array
+          items:
+            type: string
+        segmentId:
+          type: ["string", "null"]
+        scheduledAt:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        messageBody:
+          type: ["string", "null"]
+        ctaText:
+          type: ["string", "null"]
+        ctaUrl:
+          type: ["string", "null"]
+      required:
+        - name
+        - goal
+        - channels
+
+    UpdateCampaignInput:
+      type: object
+      properties:
+        name:
+          type: string
+        goal:
+          type: string
+          enum: [enroll_trial, new_acquisition, re_engage, batch_announce, awareness]
+        status:
+          type: string
+          enum: [draft, scheduled, active, paused, completed]
+        channels:
+          type: array
+          items:
+            type: string
+        segmentId:
+          type: ["string", "null"]
+        scheduledAt:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        messageBody:
+          type: ["string", "null"]
+        ctaText:
+          type: ["string", "null"]
+        ctaUrl:
+          type: ["string", "null"]
+        sentCount:
+          type: integer
+        openCount:
+          type: integer
+        clickCount:
+          type: integer
+        replyCount:
+          type: integer
+        conversionCount:
+          type: integer
+
+    CampaignLog:
+      type: object
+      properties:
+        id:
+          type: string
+        campaignId:
+          type: string
+        contactId:
+          type: string
+        contactName:
+          type: ["string", "null"]
+        contactEmail:
+          type: ["string", "null"]
+        channel:
+          type: string
+        status:
+          type: string
+          enum: [sent, delivered, opened, clicked, replied, converted, failed]
+        sentAt:
+          type: ["string", "null"]
+        openedAt:
+          type: ["string", "null"]
+        clickedAt:
+          type: ["string", "null"]
+        convertedAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - campaignId
+        - contactId
+        - channel
+        - status
+
+    TimelinePoint:
+      type: object
+      properties:
+        date:
+          type: string
+        opens:
+          type: integer
+        clicks:
+          type: integer
+        conversions:
+          type: integer
+      required:
+        - date
+        - opens
+        - clicks
+        - conversions
+
+    DashboardStats:
+      type: object
+      properties:
+        totalContacts:
+          type: integer
+        trialAttendees:
+          type: integer
+        activeCampaigns:
+          type: integer
+        conversionsThisMonth:
+          type: integer
+        overallConversionRate:
+          type: number
+        pendingFollowUps:
+          type: integer
+        totalContactsChange:
+          type: number
+        trialAttendeesChange:
+          type: number
+        activeCampaignsChange:
+          type: number
+        conversionsChange:
+          type: number
+      required:
+        - totalContacts
+        - trialAttendees
+        - activeCampaigns
+        - conversionsThisMonth
+        - overallConversionRate
+        - pendingFollowUps
+        - totalContactsChange
+        - trialAttendeesChange
+        - activeCampaignsChange
+        - conversionsChange
+
+    FunnelStage:
+      type: object
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+        dropOffPercent:
+          type: number
+      required:
+        - name
+        - count
+        - dropOffPercent
+
+    CampaignPerformanceBar:
+      type: object
+      properties:
+        name:
+          type: string
+        sent:
+          type: integer
+        opened:
+          type: integer
+        clicked:
+          type: integer
+        converted:
+          type: integer
+      required:
+        - name
+        - sent
+        - opened
+        - clicked
+        - converted
+
+    LeadSourceItem:
+      type: object
+      properties:
+        source:
+          type: string
+        count:
+          type: integer
+      required:
+        - source
+        - count
+
+    ConversionFunnelStage:
+      type: object
+      properties:
+        stage:
+          type: string
+        count:
+          type: integer
+        percent:
+          type: number
+        dropOffPercent:
+          type: number
+      required:
+        - stage
+        - count
+        - percent
+        - dropOffPercent
+
+    CohortRow:
+      type: object
+      properties:
+        month:
+          type: string
+        newLeads:
+          type: integer
+        trialRate:
+          type: number
+        attendanceRate:
+          type: number
+        conversionRate:
+          type: number
+        avgDaysToEnroll:
+          type: ["number", "null"]
+      required:
+        - month
+        - newLeads
+        - trialRate
+        - attendanceRate
+        - conversionRate
+
+    ConversionBySource:
+      type: object
+      properties:
+        source:
+          type: string
+        leads:
+          type: integer
+        enrolled:
+          type: integer
+        rate:
+          type: number
+      required:
+        - source
+        - leads
+        - enrolled
+        - rate
+
+    GlobalSearchResult:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+        campaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/Campaign"
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Segment"
+      required:
+        - contacts
+        - campaigns
+        - segments
