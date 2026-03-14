@@ -258,16 +258,67 @@ async function seed() {
       messageBody: "{{firstName}}, our July batch kicks off soon. Register your child {{childName}} today!",
       ctaText: "Reserve Your Seat",
       ctaUrl: "https://cyberarcade.in/july-batch",
-      sentCount: 0,
-      openCount: 0,
-      clickCount: 0,
-      replyCount: 0,
-      conversionCount: 0,
+      sentCount: 85,
+      openCount: 34,
+      clickCount: 15,
+      replyCount: 6,
+      conversionCount: 4,
     },
   ];
 
-  const insertedCampaigns = await db.insert(campaignsTable).values(campaignData).returning();
+  const scheduledCampaigns = [
+    {
+      name: "Summer Robotics Bootcamp Promo",
+      goal: "enroll_trial",
+      status: "scheduled",
+      channels: ["email", "whatsapp", "sms"],
+      segmentId: insertedSegments[3].id,
+      scheduledAt: daysAgo(-6),
+      subject: "Summer Robotics Bootcamp – Early Bird Offer! 🤖",
+      messageBody: "Hi {{firstName}}, enroll {{childName}} in our Summer Robotics Bootcamp and get 20% off!",
+      ctaText: "Grab Your Spot",
+      ctaUrl: "https://cyberarcade.in/summer-camp",
+      sentCount: 65, openCount: 28, clickCount: 12, replyCount: 5, conversionCount: 2,
+    },
+    {
+      name: "Parents Webinar Invite",
+      goal: "awareness",
+      status: "scheduled",
+      channels: ["email"],
+      segmentId: insertedSegments[2].id,
+      scheduledAt: daysAgo(-8),
+      subject: "Free Webinar: How Robotics Builds Future-Ready Kids",
+      messageBody: "Hi {{firstName}}, join our free webinar to discover how CyberArcade helps kids build real-world skills.",
+      ctaText: "Register Now",
+      ctaUrl: "https://cyberarcade.in/webinar",
+      sentCount: 40, openCount: 22, clickCount: 10, replyCount: 3, conversionCount: 1,
+    },
+    {
+      name: "Facebook Leads Follow-Up",
+      goal: "re_engage",
+      status: "scheduled",
+      channels: ["email", "whatsapp"],
+      segmentId: insertedSegments[4].id,
+      scheduledAt: daysAgo(-11),
+      subject: "Still thinking about CyberArcade? Here's a sneak peek! 🎮",
+      messageBody: "Hi {{firstName}}, we noticed you checked us out. Book a free trial for {{childName}} today!",
+      ctaText: "Book Free Trial",
+      ctaUrl: "https://cyberarcade.in/trial",
+      sentCount: 55, openCount: 20, clickCount: 8, replyCount: 4, conversionCount: 3,
+    },
+  ];
+
+  const insertedCampaigns = await db.insert(campaignsTable).values([...campaignData, ...scheduledCampaigns]).returning();
   console.log(`✅ Inserted ${insertedCampaigns.length} campaigns`);
+
+  // Spread contacts across 6 months for cohort data
+  for (let i = 0; i < insertedContacts.length; i++) {
+    const monthsAgo = i < 6 ? 5 : i < 14 ? 4 : i < 24 ? 3 : i < 36 ? 2 : i < 44 ? 1 : 0;
+    const offsetDays = Math.floor(Math.random() * 25);
+    const createdAt = new Date(Date.now() - (monthsAgo * 30 + offsetDays) * 86400000);
+    await db.execute(sql`UPDATE contacts SET created_at = ${createdAt.toISOString()} WHERE id = ${insertedContacts[i].id}`);
+  }
+  console.log(`✅ Spread contacts across 6 months`);
 
   // Add campaign logs for active and completed campaigns
   const logValues = [];

@@ -14,4 +14,7 @@ pnpm --filter @workspace/api-server run build
 echo "==> Pushing database schema..."
 DATABASE_URL=$DATABASE_URL pnpm --filter @workspace/db run push
 
+echo "==> Seeding database..."
+DATABASE_URL=$DATABASE_URL pnpm --filter @workspace/scripts run seed
+
 echo "==> Build complete!"
