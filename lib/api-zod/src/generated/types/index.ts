@@ -37,7 +37,6 @@ export * from "./dashboardStats";
 export * from "./deleteResult";
 export * from "./errorResponse";
 export * from "./funnelStage";
-export * from "./getCampaignLogsParams";
 export * from "./getCampaignsParams";
 export * from "./getContactsParams";
 export * from "./globalSearchParams";
