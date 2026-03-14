@@ -8,71 +8,107 @@ import {
   useGetDashboardRecentActivities,
   useGetCampaigns
 } from "@workspace/api-client-react";
-import { Activity, ArrowUpRight, ArrowDownRight, Bot, Users, Target, Phone, Mail, MessageSquare, GraduationCap, Play, TrendingUp, Radio } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, FunnelChart, Funnel, LabelList } from "recharts";
+import { Activity, ArrowUpRight, ArrowDownRight, Users, Target, Phone, Mail, MessageSquare, GraduationCap, Play, TrendingUp, Radio, Zap, Rocket, Eye } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Link } from "wouter";
 
 const CHART_COLORS = {
-  cyan: "hsl(182, 100%, 50%)",
-  purple: "hsl(275, 100%, 65%)",
-  green: "hsl(152, 100%, 50%)",
-  yellow: "hsl(51, 100%, 60%)",
-  pink: "hsl(339, 100%, 59%)"
+  cyan:   "#00f5ff",
+  purple: "#b030ff",
+  green:  "#00ff88",
+  yellow: "#ffcc00",
+  pink:   "#ff1a6b",
 };
 
-function StatCard({ title, value, change, isPercent = false, invertTrend = false }: { title: string, value: number, change: number, isPercent?: boolean, invertTrend?: boolean }) {
-  const isPositive = change >= 0;
-  const isGood = invertTrend ? !isPositive : isPositive;
-  
+const PIE_COLORS = ["#00f5ff", "#b030ff", "#00ff88", "#ffcc00", "#ff1a6b"];
+
+const ACTIVITY_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
+  note:          { icon: MessageSquare, color: "#00f5ff",  bg: "rgba(0,245,255,0.1)" },
+  call:          { icon: Phone,         color: "#ffcc00",  bg: "rgba(255,204,0,0.1)" },
+  email_sent:    { icon: Mail,          color: "#b030ff",  bg: "rgba(176,48,255,0.1)" },
+  whatsapp_sent: { icon: MessageSquare, color: "#00ff88",  bg: "rgba(0,255,136,0.1)" },
+  status_change: { icon: Target,        color: "#00f5ff",  bg: "rgba(0,245,255,0.1)" },
+  enrolled:      { icon: GraduationCap, color: "#ff1a6b",  bg: "rgba(255,26,107,0.1)" },
+};
+
+function SectionHeading({ icon: Icon, label, accent = "cyan" }: { icon: any; label: string; accent?: "cyan" | "purple" | "green" | "yellow" }) {
+  const colors: Record<string, string> = {
+    cyan:   "#00f5ff", purple: "#b030ff", green: "#00ff88", yellow: "#ffcc00"
+  };
+  const c = colors[accent];
   return (
-    <div className="cyber-card p-5 group hover:border-cyan/50 transition-colors">
-      <h3 className="font-mono text-muted-foreground text-xs uppercase tracking-wider mb-2">{title}</h3>
-      <div className="flex items-end gap-3">
-        <span className="font-display font-bold text-3xl text-white group-hover:text-cyan group-hover:drop-shadow-[0_0_8px_rgba(0,245,255,0.5)] transition-all">
-          {value}{isPercent ? '%' : ''}
-        </span>
-        <span className={`flex items-center text-xs font-mono mb-1 ${isGood ? 'text-green' : 'text-pink'}`}>
-          {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-          {Math.abs(change)}%
-        </span>
+    <div className="flex items-center gap-3 mb-5">
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: `${c}18`, border: `1px solid ${c}40` }}>
+        <Icon className="w-4 h-4" style={{ color: c, filter: `drop-shadow(0 0 5px ${c})` }} />
       </div>
+      <h2 className="font-display text-base tracking-[0.2em] uppercase font-bold" style={{ color: c, textShadow: `0 0 15px ${c}66` }}>
+        {label}
+      </h2>
+      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${c}40, transparent)` }} />
     </div>
   );
 }
 
-const ACTIVITY_ICONS: Record<string, any> = {
-  note: { icon: MessageSquare, color: "text-blue-400", bg: "bg-blue-400/10" },
-  call: { icon: Phone, color: "text-yellow", bg: "bg-yellow/10" },
-  email_sent: { icon: Mail, color: "text-purple", bg: "bg-purple/10" },
-  whatsapp_sent: { icon: MessageSquare, color: "text-green", bg: "bg-green/10" },
-  status_change: { icon: Target, color: "text-cyan", bg: "bg-cyan/10" },
-  enrolled: { icon: GraduationCap, color: "text-pink", bg: "bg-pink/10" },
-};
+function StatCard({ title, value, change, isPercent = false, invertTrend = false, accent = "cyan" }: {
+  title: string; value: number; change: number; isPercent?: boolean; invertTrend?: boolean; accent?: string;
+}) {
+  const isPositive = change >= 0;
+  const isGood = invertTrend ? !isPositive : isPositive;
+  const colors: Record<string, string> = {
+    cyan: "#00f5ff", purple: "#b030ff", green: "#00ff88", yellow: "#ffcc00", pink: "#ff1a6b"
+  };
+  const c = colors[accent] ?? "#00f5ff";
+
+  return (
+    <div className="cyber-stat-card p-5 group cursor-default" style={{ transition: "all 0.25s" }}>
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">{title}</p>
+      <div className="flex items-end justify-between">
+        <span className="font-display font-black text-3xl text-white" style={{ textShadow: `0 0 20px ${c}66` }}>
+          {value}{isPercent ? '%' : ''}
+        </span>
+        <span className={`flex items-center gap-0.5 font-mono text-xs mb-0.5 px-1.5 py-0.5 rounded`}
+          style={{ background: `${isGood ? "#00ff8822" : "#ff1a6b22"}`, color: isGood ? "#00ff88" : "#ff1a6b", border: `1px solid ${isGood ? "#00ff8840" : "#ff1a6b40"}` }}>
+          {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          {Math.abs(change)}%
+        </span>
+      </div>
+      {/* bottom accent line */}
+      <div className="mt-3 h-[2px] rounded-full" style={{ background: `linear-gradient(90deg, ${c}, transparent)`, boxShadow: `0 0 8px ${c}80` }} />
+    </div>
+  );
+}
+
+function SkeletonCard({ className = "" }: { className?: string }) {
+  return <div className={`rounded-xl bg-card border border-white/5 animate-pulse ${className}`} />;
+}
 
 export default function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
-  const { data: funnelData, isLoading: funnelLoading } = useGetDashboardFunnel();
-  const { data: performanceData, isLoading: perfLoading } = useGetDashboardCampaignPerformance();
-  const { data: leadSources, isLoading: sourcesLoading } = useGetDashboardLeadSources();
-  const { data: activities, isLoading: actsLoading } = useGetDashboardRecentActivities();
-  const { data: campaigns, isLoading: campsLoading } = useGetCampaigns({ status: 'scheduled' });
+  const { data: stats,         isLoading: statsLoading }   = useGetDashboardStats();
+  const { data: funnelData,    isLoading: funnelLoading }  = useGetDashboardFunnel();
+  const { data: performanceData }                          = useGetDashboardCampaignPerformance();
+  const { data: leadSources }                              = useGetDashboardLeadSources();
+  const { data: activities }                               = useGetDashboardRecentActivities();
+  const { data: campaigns }                                = useGetCampaigns({ status: "scheduled" });
 
-  const isLoading = statsLoading || funnelLoading || perfLoading || sourcesLoading || actsLoading || campsLoading;
+  const isLoading = statsLoading || funnelLoading;
+
+  const STAT_ACCENTS = ["cyan", "purple", "green", "yellow", "cyan", "pink"];
 
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-8 space-y-6 animate-pulse">
-          <div className="h-8 w-64 bg-elevated rounded mb-8"></div>
+        <div className="p-6 md:p-8 space-y-6 animate-pulse max-w-7xl mx-auto w-full">
+          <div className="h-10 w-80 bg-elevated rounded" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[...Array(6)].map((_, i) => <div key={i} className="h-24 cyber-card"></div>)}
+            {[...Array(6)].map((_, i) => <SkeletonCard key={i} className="h-28" />)}
           </div>
-          <div className="h-64 cyber-card"></div>
+          <SkeletonCard className="h-52" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="h-80 cyber-card lg:col-span-2"></div>
-            <div className="h-80 cyber-card"></div>
+            <SkeletonCard className="h-80 lg:col-span-2" />
+            <SkeletonCard className="h-80" />
           </div>
         </div>
       </AppLayout>
@@ -81,189 +117,211 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <PageTransition className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
-        <header>
-          <h1 className="text-2xl md:text-3xl font-display text-gradient tracking-widest mb-2">MISSION CONTROL DASHBOARD</h1>
-          <p className="text-muted-foreground font-mono text-sm">System status normal. Lead pipeline active.</p>
+      <PageTransition className="p-6 md:p-8 space-y-7 max-w-7xl mx-auto w-full">
+
+        {/* ── Header ── */}
+        <header className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-8 rounded-full" style={{ background: "linear-gradient(180deg, #00f5ff, #b030ff)", boxShadow: "0 0 10px rgba(0,245,255,0.6)" }} />
+              <h1 className="font-display font-black text-2xl md:text-3xl tracking-[0.2em]" style={{
+                background: "linear-gradient(90deg, #ffffff 0%, #00f5ff 50%, #b030ff 100%)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
+              }}>
+                MISSION CONTROL
+              </h1>
+            </div>
+            <p className="font-mono text-xs text-muted-foreground ml-4 tracking-wider">
+              Lead pipeline active · {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            </p>
+          </div>
+          <Link href="/campaigns/new">
+            <button className="cyber-button-primary px-5 py-2.5 text-sm flex items-center gap-2">
+              <Rocket className="w-4 h-4" /> Launch Mission
+            </button>
+          </Link>
         </header>
 
-        {/* KPI Row */}
+        {/* ── KPI Row ── */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard title="Total Contacts" value={stats.totalContacts} change={stats.totalContactsChange} />
-            <StatCard title="Trial Attendees" value={stats.trialAttendees} change={stats.trialAttendeesChange} />
-            <StatCard title="Active Campaigns" value={stats.activeCampaigns} change={stats.activeCampaignsChange} />
-            <StatCard title="Conversions" value={stats.conversionsThisMonth} change={stats.conversionsChange} />
-            <StatCard title="Conv. Rate" value={stats.overallConversionRate} change={2.4} isPercent />
-            <StatCard title="Pending Follow-ups" value={stats.pendingFollowUps} change={-5} invertTrend />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <StatCard title="Total Contacts" value={stats.totalContacts} change={stats.totalContactsChange} accent="cyan" />
+            <StatCard title="Trial Attendees" value={stats.trialAttendees} change={stats.trialAttendeesChange} accent="purple" />
+            <StatCard title="Active Campaigns" value={stats.activeCampaigns} change={stats.activeCampaignsChange} accent="green" />
+            <StatCard title="Conversions" value={stats.conversionsThisMonth} change={stats.conversionsChange} accent="yellow" />
+            <StatCard title="Conv. Rate" value={stats.overallConversionRate} change={2.4} isPercent accent="cyan" />
+            <StatCard title="Pending Follow-ups" value={stats.pendingFollowUps} change={-5} invertTrend accent="pink" />
           </div>
         )}
 
-        {/* Funnel */}
-        <div className="cyber-card p-6">
-          <h2 className="font-display text-lg text-cyan mb-6 tracking-widest flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" /> CONVERSION PIPELINE
-          </h2>
-          <div className="h-[200px] w-full">
-            {funnelData && (
-              <ResponsiveContainer width="100%" height="100%">
-                <FunnelChart>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'var(--font-mono)' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  />
-                  <Funnel
-                    dataKey="count"
-                    data={funnelData}
-                    isAnimationActive
-                  >
-                    <LabelList position="right" fill="#fff" stroke="none" dataKey="name" className="font-mono text-xs" />
-                    {funnelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={`url(#funnelGradient${index})`} />
-                    ))}
-                  </Funnel>
-                  <defs>
-                    {funnelData?.map((_, index) => (
-                      <linearGradient key={`gradient-${index}`} id={`funnelGradient${index}`} x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={CHART_COLORS.cyan} stopOpacity={1 - (index * 0.15)} />
-                        <stop offset="100%" stopColor={CHART_COLORS.purple} stopOpacity={1 - (index * 0.15)} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                </FunnelChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Performance */}
+        {/* ── Funnel + Quick Metrics ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Funnel Bars */}
           <div className="cyber-card p-6 lg:col-span-2">
-            <h2 className="font-display text-lg text-cyan mb-6 tracking-widest flex items-center gap-2">
-              <Radio className="w-5 h-5" /> CAMPAIGN PERFORMANCE (LAST 6)
-            </h2>
-            <div className="h-[300px] w-full">
-              {performanceData && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={performanceData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#8888bb" fontSize={10} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'var(--font-mono)' }}
-                    />
-                    <Bar dataKey="sent" fill={CHART_COLORS.cyan} radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="opened" fill={CHART_COLORS.purple} radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="clicked" fill={CHART_COLORS.green} radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="converted" fill={CHART_COLORS.yellow} radius={[2, 2, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
+            <SectionHeading icon={TrendingUp} label="Conversion Pipeline" accent="cyan" />
+            <div className="space-y-3">
+              {(funnelData ?? []).map((stage, i) => {
+                const maxCount = funnelData?.[0]?.count ?? 1;
+                const pct = Math.round((stage.count / maxCount) * 100);
+                const barColor = i === 0 ? "#00f5ff" : i < 3 ? "#b030ff" : i < 5 ? "#00ff88" : "#ffcc00";
+                return (
+                  <div key={stage.name} className="flex items-center gap-3">
+                    <span className="font-mono text-[10px] text-muted-foreground w-28 shrink-0 text-right">{stage.name}</span>
+                    <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="h-full rounded-full transition-all duration-700" style={{
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${barColor}cc, ${barColor}66)`,
+                        boxShadow: `0 0 8px ${barColor}60`,
+                      }} />
+                    </div>
+                    <span className="font-display font-bold text-sm w-10 shrink-0" style={{ color: barColor }}>{stage.count}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground w-10 shrink-0">{pct}%</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Lead Sources */}
+          {/* Lead Sources Donut */}
           <div className="cyber-card p-6">
-            <h2 className="font-display text-lg text-cyan mb-6 tracking-widest flex items-center gap-2">
-              <Target className="w-5 h-5" /> LEAD SOURCES
-            </h2>
-            <div className="h-[300px] w-full relative">
+            <SectionHeading icon={Target} label="Lead Sources" accent="purple" />
+            <div className="h-[180px]">
               {leadSources && (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={leadSources}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="count"
-                      nameKey="source"
-                    >
-                      {leadSources.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length]} />
+                    <Pie data={leadSources} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={4} dataKey="count" nameKey="source">
+                      {leadSources.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} style={{ filter: `drop-shadow(0 0 5px ${PIE_COLORS[i % PIE_COLORS.length]}80)` }} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', fontFamily: 'var(--font-mono)' }}
-                    />
+                    <Tooltip contentStyle={{ background: "#0a0a1e", border: "1px solid rgba(0,245,255,0.2)", fontFamily: "JetBrains Mono", fontSize: 11 }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
             </div>
+            <div className="space-y-1.5 mt-1">
+              {(leadSources ?? []).slice(0, 4).map((s, i) => (
+                <div key={s.source} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length], boxShadow: `0 0 5px ${PIE_COLORS[i % PIE_COLORS.length]}` }} />
+                    <span className="font-mono text-[11px] text-muted-foreground capitalize">{s.source}</span>
+                  </div>
+                  <span className="font-display font-bold text-xs text-white">{s.count}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Activity */}
-          <div className="cyber-card flex flex-col h-[400px]">
-            <div className="p-6 border-b border-white/5 shrink-0">
-              <h2 className="font-display text-lg text-cyan tracking-widest flex items-center gap-2">
-                <Activity className="w-5 h-5" /> RECENT ACTIVITY FEED
-              </h2>
+        {/* ── Campaign Performance Bar Chart ── */}
+        <div className="cyber-card p-6">
+          <SectionHeading icon={Radio} label="Campaign Performance — Last 6" accent="green" />
+          <div className="h-[240px]">
+            {performanceData && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={performanceData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={4}>
+                  <XAxis dataKey="name" stroke="#55557a" fontSize={10} tickLine={false} axisLine={false} fontFamily="JetBrains Mono" />
+                  <YAxis stroke="#55557a" fontSize={10} tickLine={false} axisLine={false} fontFamily="JetBrains Mono" />
+                  <Tooltip
+                    cursor={{ fill: "rgba(0,245,255,0.04)" }}
+                    contentStyle={{ background: "#0a0a1e", border: "1px solid rgba(0,245,255,0.2)", fontFamily: "JetBrains Mono", fontSize: 11, borderRadius: 8 }}
+                    itemStyle={{ color: "#ffffff" }}
+                  />
+                  <Bar dataKey="sent"      fill={CHART_COLORS.cyan}   radius={[3, 3, 0, 0]} maxBarSize={20} />
+                  <Bar dataKey="opened"    fill={CHART_COLORS.purple} radius={[3, 3, 0, 0]} maxBarSize={20} />
+                  <Bar dataKey="clicked"   fill={CHART_COLORS.green}  radius={[3, 3, 0, 0]} maxBarSize={20} />
+                  <Bar dataKey="converted" fill={CHART_COLORS.yellow} radius={[3, 3, 0, 0]} maxBarSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-6 mt-1">
+              {[["Sent", "#00f5ff"], ["Opened", "#b030ff"], ["Clicked", "#00ff88"], ["Converted", "#ffcc00"]].map(([label, color]) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm" style={{ background: color, boxShadow: `0 0 5px ${color}` }} />
+                  <span className="font-mono text-[10px] text-muted-foreground">{label}</span>
+                </div>
+              ))}
             </div>
-            <div className="p-0 overflow-y-auto flex-1">
-              {activities?.map((act) => {
-                const IconConfig = ACTIVITY_ICONS[act.type] || ACTIVITY_ICONS.note;
-                const Icon = IconConfig.icon;
+          </div>
+        </div>
+
+        {/* ── Activity Feed + Upcoming Campaigns ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Activity Feed */}
+          <div className="cyber-card flex flex-col overflow-hidden" style={{ maxHeight: 400 }}>
+            <div className="p-5 border-b shrink-0" style={{ borderColor: "rgba(0,245,255,0.08)" }}>
+              <SectionHeading icon={Activity} label="Live Activity Feed" accent="cyan" />
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {(activities ?? []).map((act) => {
+                const cfg = ACTIVITY_ICONS[act.type] ?? ACTIVITY_ICONS.note;
+                const Icon = cfg.icon;
                 return (
-                  <div key={act.id} className="flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${IconConfig.bg} ${IconConfig.color}`}>
-                      <Icon className="w-5 h-5" />
+                  <div key={act.id} className="flex items-start gap-3 px-5 py-3 border-b transition-colors cursor-default"
+                    style={{ borderColor: "rgba(255,255,255,0.04)" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,245,255,0.03)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "")}>
+                    <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
+                      style={{ background: cfg.bg, border: `1px solid ${cfg.color}30` }}>
+                      <Icon className="w-4 h-4" style={{ color: cfg.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white">
-                        <span className="font-bold">{act.contactName || 'Unknown Contact'}</span>{' '}
-                        <span className="text-muted-foreground">{act.description}</span>
+                      <p className="text-sm text-white leading-snug">
+                        <span className="font-bold text-white">{act.contactName ?? "Unknown"}</span>{" "}
+                        <span className="text-muted-foreground font-mono text-xs">{act.description}</span>
                       </p>
-                      <p className="text-xs font-mono text-muted-foreground mt-1">
+                      <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
                         {formatDistanceToNow(new Date(act.createdAt), { addSuffix: true })}
-                        {act.createdBy && ` • by ${act.createdBy}`}
+                        {act.createdBy ? ` · ${act.createdBy}` : ""}
                       </p>
                     </div>
                   </div>
                 );
               })}
               {(!activities || activities.length === 0) && (
-                <div className="p-8 text-center text-muted-foreground font-mono">No recent activity detected.</div>
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">No activity detected.</div>
               )}
             </div>
           </div>
 
           {/* Upcoming Campaigns */}
-          <div className="cyber-card flex flex-col h-[400px]">
-            <div className="p-6 border-b border-white/5 shrink-0 flex justify-between items-center">
-              <h2 className="font-display text-lg text-cyan tracking-widest flex items-center gap-2">
-                <Radio className="w-5 h-5" /> UPCOMING CAMPAIGNS
-              </h2>
-              <Link href="/campaigns/new" className="text-xs font-mono text-cyan hover:text-white transition-colors">
-                + NEW
+          <div className="cyber-card flex flex-col overflow-hidden" style={{ maxHeight: 400 }}>
+            <div className="p-5 border-b shrink-0 flex items-center justify-between" style={{ borderColor: "rgba(0,245,255,0.08)" }}>
+              <SectionHeading icon={Radio} label="Campaign Queue" accent="yellow" />
+              <Link href="/campaigns/new">
+                <button className="cyber-button-accent px-3 py-1.5 text-xs flex items-center gap-1.5 -mt-5">
+                  <Zap className="w-3 h-3" /> New
+                </button>
               </Link>
             </div>
-            <div className="p-0 overflow-y-auto flex-1">
-              {campaigns?.slice(0,5).map((camp) => (
-                <div key={camp.id} className="p-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors flex items-center justify-between group">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-display font-bold text-white group-hover:text-cyan transition-colors">{camp.name}</h4>
+            <div className="flex-1 overflow-y-auto">
+              {(campaigns ?? []).slice(0, 6).map((camp) => (
+                <div key={camp.id} className="flex items-center gap-3 px-5 py-3.5 border-b group transition-colors"
+                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(176,48,255,0.04)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "")}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-display font-bold text-sm text-white group-hover:text-cyan transition-colors truncate">{camp.name}</p>
                       <StatusBadge status={camp.status} />
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-mono text-muted-foreground">
-                      <span>{camp.segmentName || 'All Contacts'}</span>
-                      <span>•</span>
-                      <span>{camp.scheduledAt ? new Date(camp.scheduledAt).toLocaleDateString() : 'Unscheduled'}</span>
-                    </div>
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {camp.segmentName ?? "All Contacts"} · {camp.scheduledAt ? new Date(camp.scheduledAt).toLocaleDateString() : "Unscheduled"}
+                    </p>
                   </div>
-                  <Link href={`/campaigns/${camp.id}`} className="w-8 h-8 rounded bg-elevated border border-white/10 flex items-center justify-center text-cyan hover:bg-cyan hover:text-black transition-colors">
-                    <Play className="w-4 h-4 ml-0.5" />
+                  <Link href={`/campaigns/${camp.id}`}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                      style={{ background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.2)" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#00f5ff"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px rgba(0,245,255,0.5)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,245,255,0.08)"; (e.currentTarget as HTMLElement).style.boxShadow = ""; }}>
+                      <Eye className="w-3.5 h-3.5 text-cyan group-hover:text-black" />
+                    </div>
                   </Link>
                 </div>
               ))}
               {(!campaigns || campaigns.length === 0) && (
-                <div className="p-8 text-center text-muted-foreground font-mono">No scheduled campaigns.</div>
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">No campaigns scheduled.</div>
               )}
             </div>
           </div>
